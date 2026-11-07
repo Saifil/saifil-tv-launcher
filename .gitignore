@@ -1,0 +1,6 @@
+.DS_Store
+build/
+*.idsig
+optimize_video
+debug.keystore
+bg/.cache_1080p/

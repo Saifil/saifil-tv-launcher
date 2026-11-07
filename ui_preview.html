@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Saifil TV Launcher — Constant White Glow, Appstore & App Manager</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    .tv-frame {
+      aspect-ratio: 16 / 9;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+    }
+
+    .macos-item-shadow {
+      filter: drop-shadow(0 1px 5px rgba(0, 0, 0, 0.65));
+    }
+
+    .text-glow {
+      text-shadow: 0 2px 14px rgba(0, 0, 0, 0.75);
+    }
+
+    /* Base Tile — Fixed border width so focus NEVER shifts layout */
+    .launcher-tile {
+      background: rgba(18, 21, 28, 0.74);
+      backdrop-filter: blur(18px) saturate(150%);
+      -webkit-backdrop-filter: blur(18px) saturate(150%);
+      border: 1.5px solid rgba(255, 255, 255, 0.14);
+      box-shadow:
+        0 8px 20px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.14);
+      transition: background 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    /* Constant Pure White Static Glow (regardless of app brand color!) */
+    .white-static-glow {
+      background: rgba(255, 255, 255, 0.16) !important;
+      border-color: #FFFFFF !important;
+      box-shadow:
+        0 0 22px rgba(255, 255, 255, 0.68),
+        0 0 7px rgba(255, 255, 255, 0.55),
+        inset 0 1px 1px rgba(255, 255, 255, 0.75) !important;
+    }
+  </style>
+</head>
+<body class="bg-[var(--background)] text-[var(--foreground)] antialiased p-4 select-none">
+
+  <!-- Studio Controls Bar -->
+  <div class="max-w-6xl mx-auto mb-4 bg-[var(--card)] border border-[var(--border)] rounded-2xl p-4 shadow-sm">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h1 class="text-base font-semibold text-[var(--foreground)]">Constant White Static Glow + HDMIs Last + App Manager</h1>
+        <p class="text-xs text-[var(--muted-foreground)]">
+          Use <kbd class="px-1.5 py-0.5 rounded bg-[var(--sidebar)] border border-[var(--border)]">←</kbd> <kbd class="px-1.5 py-0.5 rounded bg-[var(--sidebar)] border border-[var(--border)]">→</kbd> to navigate, or click <strong>Launcher Settings</strong> (or the button on the right) to toggle which apps appear on the Home screen!
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <button onclick="setTileVisual('vector-brand')" data-visual="vector-brand" class="vis-btn px-3 py-1.5 rounded-lg text-xs font-medium border border-[var(--border)] bg-[var(--primary)] text-[var(--primary-foreground)]">
+          1. Smoked Glass + Vector Brand Icons
+        </button>
+        <button onclick="setTileVisual('full-color-bg')" data-visual="full-color-bg" class="vis-btn px-3 py-1.5 rounded-lg text-xs font-medium border border-[var(--border)] bg-[var(--sidebar)] text-[var(--foreground)]">
+          2. Full Colored App Tiles (White YT, etc.)
+        </button>
+        <button onclick="toggleAppManager(true)" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-white/25 bg-emerald-600 text-white hover:bg-emerald-500 cursor-pointer">
+          Open Launcher App Manager
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 16:9 TV Viewport -->
+  <div class="max-w-6xl mx-auto">
+    <div id="tv-viewport" class="tv-frame relative w-full rounded-2xl overflow-hidden shadow-2xl border border-white/15 bg-black">
+      <video
+        id="bg-video"
+        src="bg/.cache_1080p/interstellar-black-hole-wallpaperwaves-com.mp4"
+        poster="tv_new_blackhole.jpg"
+        autoplay
+        loop
+        muted
+        playsinline
+        class="absolute inset-0 w-full h-full object-cover pointer-events-none"
+      ></video>
+
+      <!-- Bottom optical gradient -->
+      <div class="absolute inset-x-0 bottom-0 h-60 bg-gradient-to-t from-black/75 via-black/30 to-transparent pointer-events-none"></div>
+
+      <!-- ========================================================= -->
+      <!-- TOP-LEFT: Apple SF "WELCOME / Saifil Momin"                -->
+      <!-- ========================================================= -->
+      <div class="absolute top-4 left-7 z-20 text-glow">
+        <div class="text-[11px] font-normal tracking-[0.22em] uppercase text-white/75 mb-0.5">
+          WELCOME
+        </div>
+        <div class="text-[28px] font-extralight tracking-[0.03em] text-white leading-tight">
+          Saifil Momin
+        </div>
+      </div>
+
+      <!-- ========================================================= -->
+      <!-- TOP-RIGHT: Live Weather + Status Bar Icons + Date & Time   -->
+      <!-- ========================================================= -->
+      <div class="absolute top-3.5 right-6 z-30 flex items-center gap-3 text-white macos-item-shadow">
+        <!-- Weather (Moon + Temp) -->
+        <div class="flex items-center gap-1.5 text-white/95 text-[13.5px] font-normal tracking-wide mr-1 pb-[5px]">
+          <svg viewBox="0 0 24 24" class="w-[15px] h-[15px] text-amber-300" fill="currentColor">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+          <span>62°</span>
+        </div>
+
+        <!-- Wi-Fi -->
+        <div class="w-[24px] h-[30px] flex flex-col items-center justify-center">
+          <svg viewBox="0 0 24 24" class="w-[17px] h-[17px]" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2.2 9.4a15.4 15.4 0 0 1 19.6 0" />
+            <path d="M5.7 13.1a10.5 10.5 0 0 1 12.6 0" />
+            <path d="M9.2 16.7a5.6 5.6 0 0 1 5.6 0" />
+            <circle cx="12" cy="19.8" r="1.4" fill="currentColor" stroke="none" />
+          </svg>
+          <span class="w-1 h-1 mt-1 opacity-0"></span>
+        </div>
+
+        <!-- Bluetooth -->
+        <div class="w-[24px] h-[30px] flex flex-col items-center justify-center">
+          <svg viewBox="0 0 24 24" class="w-[16.5px] h-[16.5px] text-white/90" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6.8 7.5L17.2 16.5L12 21.2V2.8L17.2 7.5L6.8 16.5" />
+          </svg>
+          <span class="w-1 h-1 mt-1 opacity-0"></span>
+        </div>
+
+        <!-- Classic Gear -->
+        <div class="w-[24px] h-[30px] flex flex-col items-center justify-center">
+          <svg viewBox="0 0 24 24" class="w-[17px] h-[17px] text-white/90" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3.2" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+          <span class="w-1 h-1 mt-1 opacity-0"></span>
+        </div>
+
+        <!-- Date & Time -->
+        <div class="text-white/95 text-[13.5px] font-normal tracking-[0.02em] pl-1 pb-[5px] whitespace-nowrap">
+          Fri Nov 6 &nbsp;5:32 PM
+        </div>
+      </div>
+
+      <!-- ========================================================= -->
+      <!-- BOTTOM STAGGERED DOCK (Apps First -> HDMIs & Settings Last) -->
+      <!-- ========================================================= -->
+      <div id="apps-dock-mount" class="absolute inset-x-6 bottom-5 z-30 flex flex-col items-center"></div>
+
+      <!-- ========================================================= -->
+      <!-- LAUNCHER SETTINGS MODAL (Manage Which Apps Show on Home)   -->
+      <!-- ========================================================= -->
+      <div id="app-manager-modal" class="hidden absolute inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-6">
+        <div class="w-full max-w-xl rounded-3xl bg-[#12151E]/95 border border-white/20 p-5 shadow-2xl text-white">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-white/15">
+            <div>
+              <h2 class="text-base font-medium tracking-wide">Launcher Settings — Manage Home Screen Apps</h2>
+              <p class="text-xs text-white/55">Toggle which preselected apps &amp; HDMI inputs appear on your Home screen</p>
+            </div>
+            <button onclick="toggleAppManager(false)" class="px-3 py-1 rounded-xl bg-white/15 hover:bg-white/25 text-xs font-medium cursor-pointer">
+              Done
+            </button>
+          </div>
+
+          <div id="app-manager-list" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[260px] overflow-y-auto pr-1"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const videoEl = document.getElementById('bg-video');
+    videoEl.defaultPlaybackRate = 0.75;
+    videoEl.playbackRate = 0.75;
+    videoEl.addEventListener('loadeddata', () => { videoEl.playbackRate = 0.75; });
+
+    // Recognizable Vector Brand Icons (used in Mode 1)
+    const VECTOR_ICONS = {
+      youtube: `<svg viewBox="0 0 24 24" class="w-5 h-5 text-[#FF0033]" fill="currentColor"><path d="M21.8 8.001a2.75 2.75 0 0 0-1.94-1.94C18.14 5.6 12 5.6 12 5.6s-6.14 0-7.86.46a2.75 2.75 0 0 0-1.94 1.94C1.74 9.72 1.74 12 1.74 12s0 2.28.46 3.999a2.75 2.75 0 0 0 1.94 1.94c1.72.46 7.86.46 7.86.46s6.14 0 7.86-.46a2.75 2.75 0 0 0 1.94-1.94c.46-1.72.46-4 .46-4s0-2.28-.46-3.999zM9.95 15.02V8.98L15.2 12l-5.25 3.02z"/></svg>`,
+      netflix: `<svg viewBox="0 0 24 24" class="w-4 h-4 text-[#E50914]" fill="currentColor"><path d="M5.5 3h3.2l6.6 18h-3.2L5.5 3zm0 0h3.1v18l-3.1-.4V3zm9.9 0h3.1v17.6l-3.1.4V3z"/></svg>`,
+      prime: `<svg viewBox="0 0 24 24" class="w-5 h-5 text-[#00A8E1]" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 13.5c4.5 3.5 11.5 3.5 16 0"/><path d="M17.5 12.2l2.8 1-.8 2.8"/></svg>`,
+      disney: `<svg viewBox="0 0 24 24" class="w-5 h-5 text-[#60A5FA]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 14C8 6.5 16 6.5 20 14"/><path d="M17 7v4m-2-2h4"/></svg>`,
+      appletv: `<span class="text-white text-sm font-semibold"></span>`,
+      hulu: `<span class="text-[#1CE783] text-xs font-black tracking-tighter">h</span>`,
+      spotify: `<svg viewBox="0 0 24 24" class="w-5 h-5 text-[#1DB954]" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.58 14.42a.62.62 0 0 1-.85.2c-2.34-1.43-5.28-1.75-8.75-.96a.62.62 0 0 1-.28-1.21c3.8-.87 7.05-.5 9.68 1.11.3.18.39.56.2.86zm1.22-2.72a.78.78 0 0 1-1.07.26c-2.68-1.65-6.76-2.12-9.93-1.16a.78.78 0 1 1-.45-1.49c3.63-1.1 8.13-.57 11.19 1.32.37.23.49.7.26 1.07zm.11-2.83c-3.21-1.91-8.51-2.08-11.58-1.15a.93.93 0 1 1-.54-1.78c3.53-1.07 9.39-.86 13.07 1.33a.93.93 0 0 1-.95 1.6z"/></svg>`,
+      crunchyroll: `<svg viewBox="0 0 24 24" class="w-5 h-5 text-[#F47521]" fill="currentColor"><path d="M12 2.2a9.8 9.8 0 1 0 9.6 11.6 7.6 7.6 0 1 1-8.1-9.1c.5 0 1 .05 1.5.15A9.75 9.75 0 0 0 12 2.2zm2.2 6.8a3.2 3.2 0 1 0 3.2 3.2 1.4 1.4 0 1 1-1.4-1.4c.3 0 .6.1.8.25A3.18 3.18 0 0 0 14.2 9z"/></svg>`,
+      willow: `<svg viewBox="0 0 24 24" class="w-4 h-4 text-[#EF4444]" fill="currentColor"><circle cx="12" cy="12" r="8"/></svg>`,
+      peacock: `<svg viewBox="0 0 24 24" class="w-5 h-5" fill="none"><circle cx="8" cy="10" r="2" fill="#FACC15"/><circle cx="10.5" cy="7" r="2" fill="#EF4444"/><circle cx="13.5" cy="7" r="2" fill="#A855F7"/><circle cx="16" cy="10" r="2" fill="#3B82F6"/><circle cx="15" cy="13.5" r="2" fill="#22C55E"/></svg>`,
+      fubo: `<span class="text-[#F97316] text-xs font-black">f</span>`,
+      zee5: `<span class="text-[#A855F7] text-xs font-black">Z5</span>`,
+      nbcsports: `<span class="text-[#38BDF8] text-xs font-bold">NBC</span>`,
+      appstore: `<svg viewBox="0 0 24 24" class="w-4 h-4 text-[#FF9900]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>`,
+       hdmi1: `<svg viewBox="0 0 24 24" class="w-4 h-4 text-white/85" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/></svg>`,
+      hdmi2: `<svg viewBox="0 0 24 24" class="w-4 h-4 text-white/85" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/></svg>`,
+      hdmi3: `<svg viewBox="0 0 24 24" class="w-4 h-4 text-white/85" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/></svg>`,
+      launchersettings: `<svg viewBox="0 0 24 24" class="w-4 h-4 text-white/90" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><circle cx="9" cy="7" r="2" fill="currentColor"/><line x1="4" y1="17" x2="20" y2="17"/><circle cx="15" cy="17" r="2" fill="currentColor"/></svg>`
+    };
+
+    // Master Preselected Catalog (Streaming Apps First -> Appstore -> HDMIs & Launcher Settings Last)
+    const CATALOG = [
+      { id: 'youtube', name: 'YOUTUBE', label: 'YouTube', bg: '#FFFFFF', textCol: '#111111', enabled: true },
+      { id: 'netflix', name: 'NETFLIX', label: 'NETFLIX', bg: '#111111', textCol: '#E50914', enabled: true },
+      { id: 'prime', name: 'PRIME VIDEO', label: 'prime', bg: '#00A8E1', textCol: '#FFFFFF', enabled: true },
+      { id: 'disney', name: 'DISNEY+', label: 'Disney+', bg: '#091F4E', textCol: '#FFFFFF', enabled: true },
+      { id: 'appletv', name: 'APPLE TV', label: 'tv', bg: '#1C1C1E', textCol: '#FFFFFF', enabled: true },
+      { id: 'hulu', name: 'HULU', label: 'hulu', bg: '#0B0C0F', textCol: '#1CE783', enabled: true },
+      { id: 'spotify', name: 'SPOTIFY', label: 'Spotify', bg: '#121212', textCol: '#1DB954', enabled: true },
+      { id: 'crunchyroll', name: 'CRUNCHYROLL', label: 'Crunchyroll', bg: '#F47521', textCol: '#FFFFFF', enabled: true },
+      { id: 'willow', name: 'WILLOW CRICKET', label: 'WILLOW', bg: '#FFFFFF', textCol: '#B91C1C', enabled: true },
+      { id: 'peacock', name: 'PEACOCK', label: 'peacock', bg: '#0E0E12', textCol: '#FFFFFF', enabled: true },
+      { id: 'fubo', name: 'FUBO TV', label: 'fubo', bg: '#18181B', textCol: '#F97316', enabled: false },
+      { id: 'zee5', name: 'ZEE5', label: 'ZEE5', bg: '#1E1B4B', textCol: '#FFFFFF', enabled: false },
+      { id: 'nbcsports', name: 'NBC SPORTS', label: 'NBC Sports', bg: '#0F172A', textCol: '#FFFFFF', enabled: false },
+      { id: 'appstore', name: 'AMAZON APPSTORE', label: 'Appstore', bg: '#1F2937', textCol: '#FF9900', enabled: true },
+      { id: 'hdmi1', name: 'HDMI 1', label: 'HDMI 1', bg: '#1E2433', textCol: '#FFFFFF', isInput: true, enabled: true },
+      { id: 'hdmi2', name: 'HDMI 2', label: 'HDMI 2', bg: '#1E2433', textCol: '#FFFFFF', isInput: true, enabled: true },
+      { id: 'hdmi3', name: 'HDMI 3', label: 'HDMI 3', bg: '#1E2433', textCol: '#FFFFFF', isInput: true, enabled: false },
+      { id: 'launchersettings', name: 'LAUNCHER SETTINGS (MANAGE APPS)', label: 'Apps', bg: '#1E2433', textCol: '#FFFFFF', isAction: true, enabled: true }
+    ];
+
+    let tileVisual = 'vector-brand';
+    let focusedIdx = 0;
+
+    function getEnabledItems() {
+      return CATALOG.filter(item => item.enabled);
+    }
+
+    function distributeIntoPyramidRows(items) {
+      // Follows your photo's staggered 3-row centering (top row medium, middle row widest, bottom row compact)
+      const n = items.length;
+      if (n <= 5) return [items];
+      if (n <= 10) {
+        const r1 = Math.ceil(n * 0.45);
+        return [items.slice(0, r1), items.slice(r1)];
+      }
+      // For ~11-15 items: e.g. 4 in Row 1, 6 in Row 2, remainder (3-4: Appstore, HDMI 1, HDMI 2, Settings) in Row 3!
+      return [
+        items.slice(0, 4),
+        items.slice(4, 10),
+        items.slice(10)
+      ];
+    }
+
+    function renderTileHTML(item, globalIdx, firstInputId) {
+      const isFoc = globalIdx === focusedIdx;
+      const divider = (item.id === firstInputId)
+        ? `<div class="w-px h-7 bg-white/20 mx-1 shrink-0"></div>`
+        : '';
+
+      const clickHandler = item.id === 'launchersettings'
+        ? `onclick="setFocus(${globalIdx}); toggleAppManager(true);"`
+        : `onclick="setFocus(${globalIdx})"`;
+
+      if (tileVisual === 'full-color-bg' && !item.isInput && !item.isAction) {
+        return `
+          ${divider}
+          <button
+            ${clickHandler}
+            onmouseenter="setFocus(${globalIdx})"
+            style="background: ${item.bg}; color: ${item.textCol};"
+            class="launcher-tile h-[42px] px-4 rounded-2xl flex items-center justify-center gap-2 cursor-pointer shrink-0 ${isFoc ? 'white-static-glow' : ''}"
+          >
+            ${VECTOR_ICONS[item.id] || ''}
+            <span class="text-xs font-semibold tracking-wider whitespace-nowrap">${item.label}</span>
+          </button>
+        `;
+      }
+
+      // Default Mode 1: Smoked Glass Pill + Recognizable Vector Brand Icon + Constant White Static Glow
+      return `
+        ${divider}
+        <button
+          ${clickHandler}
+          onmouseenter="setFocus(${globalIdx})"
+          class="launcher-tile h-[42px] px-3.5 rounded-2xl flex items-center justify-center gap-2 text-white cursor-pointer shrink-0 ${isFoc ? 'white-static-glow' : ''}"
+        >
+          ${VECTOR_ICONS[item.id] || ''}
+          <span class="text-xs font-medium tracking-wider whitespace-nowrap ${isFoc ? 'text-white' : 'text-white/85'}">${item.label}</span>
+        </button>
+      `;
+    }
+
+    function renderDock() {
+      const enabled = getEnabledItems();
+      if (focusedIdx >= enabled.length) focusedIdx = 0;
+      const focusedItem = enabled[focusedIdx] || { name: '' };
+      const firstInput = enabled.find(x => x.isInput);
+      const firstInputId = firstInput ? firstInput.id : null;
+
+      const rows = distributeIntoPyramidRows(enabled);
+      let runningIdx = 0;
+
+      const mount = document.getElementById('apps-dock-mount');
+      mount.innerHTML = `
+        <div class="h-5 mb-2 flex items-center justify-center">
+          <span class="text-white/90 text-[11px] font-medium tracking-[0.22em] uppercase text-glow">
+            ${focusedItem.name}
+          </span>
+        </div>
+
+        ${rows.map(row => {
+          const rowHTML = row.map(item => {
+            const html = renderTileHTML(item, runningIdx, firstInputId);
+            runningIdx++;
+            return html;
+          }).join('');
+          return `<div class="flex items-center justify-center gap-2.5 mb-2">${rowHTML}</div>`;
+        }).join('')}
+      `;
+    }
+
+    function renderAppManager() {
+      const list = document.getElementById('app-manager-list');
+      list.innerHTML = CATALOG.map((item, i) => {
+        if (item.id === 'launchersettings') return '';
+        return `
+          <label class="flex items-center justify-between p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 cursor-pointer">
+            <span class="flex items-center gap-2 text-xs font-medium truncate">
+              ${VECTOR_ICONS[item.id] || ''}
+              <span>${item.label}</span>
+            </span>
+            <input
+              type="checkbox"
+              ${item.enabled ? 'checked' : ''}
+              onchange="toggleCatalogItem(${i}, this.checked)"
+              class="accent-white w-4 h-4"
+            />
+          </label>
+        `;
+      }).join('');
+    }
+
+    function toggleCatalogItem(index, checked) {
+      CATALOG[index].enabled = checked;
+      renderDock();
+    }
+
+    function toggleAppManager(show) {
+      const modal = document.getElementById('app-manager-modal');
+      if (show) {
+        renderAppManager();
+        modal.classList.remove('hidden');
+      } else {
+        modal.classList.add('hidden');
+      }
+    }
+
+    function setTileVisual(v) {
+      tileVisual = v;
+      document.querySelectorAll('.vis-btn').forEach(btn => {
+        const active = btn.getAttribute('data-visual') === v;
+        btn.className = `vis-btn px-3 py-1.5 rounded-lg text-xs font-medium border border-[var(--border)] ${
+          active
+            ? 'bg-[var(--primary)] text-[var(--primary-foreground)]'
+            : 'bg-[var(--sidebar)] text-[var(--foreground)]'
+        }`;
+      });
+      renderDock();
+    }
+
+    function setFocus(idx) {
+      const enabled = getEnabledItems();
+      focusedIdx = (idx + enabled.length) % enabled.length;
+      renderDock();
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        setFocus(focusedIdx + 1);
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        setFocus(focusedIdx - 1);
+      } else if (e.key === 'Enter') {
+        const enabled = getEnabledItems();
+        if (enabled[focusedIdx] && enabled[focusedIdx].id === 'launchersettings') {
+          toggleAppManager(true);
+        }
+      } else if (e.key === 'Escape') {
+        toggleAppManager(false);
+      }
+    });
+
+    renderDock();
+  </script>
+</body>
+</html>
